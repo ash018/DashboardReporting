@@ -1,0 +1,151 @@
+{% extends "./public/CommonBaseLayout.html" %}
+{% load static %}
+{% block main_content %}
+
+    <style type="text/css">
+
+    </style>
+
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="row">
+            <div class="col-md-4 col-lg-4 col-sm-4">
+                <h2>My Dashboards</h2>
+                <ol class="breadcrumb">
+                    <li>
+                        <a href="#">Home</a>
+                    </li>
+                    <li class="active">
+                        <strong>List of Dashboards</strong>
+                    </li>
+                </ol>
+            </div>
+            <div class="col-md-8 col-lg-8 col-sm-8">
+                <div class="title-action">
+{#                    <a href="" class="btn btn-primary">This is action area</a>#}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {#            <div class="wrapper wrapper-content">#}
+    {#                <div class="middle-box text-center animated fadeInRightBig">#}
+    {#                    <h3 class="font-bold">This is page content</h3>#}
+    {#                    <div class="error-desc">#}
+    {#                        You can create here any grid layout you want. And any variation layout you imagine:) Check out#}
+    {#                        main dashboard and other site. It use many different layout.#}
+    {#                        <br/><a href="index.html" class="btn btn-primary m-t">Dashboard</a>#}
+    {#                    </div>#}
+    {#                </div>#}
+    {#            </div>#}
+
+    <br>
+    <div class="row">
+        <div class="col-md-12 col-lg-12 col-sm-12">
+            <div class="input-group">
+                <input type="text" placeholder="Search Dashboard" class="input-sm form-control" id="filter_reportlist">
+                <span class="input-group-btn">
+                <button type="button" class="btn btn-sm btn-primary"> Search</button> </span>
+            </div>
+        </div>
+    </div>
+    <br>
+
+    <div class="row" id="filterable_content">
+    {% for item in reportList %}
+        <form id="showReport" method="post" enctype="multipart/form-data" action="/report">
+            {% csrf_token %}
+
+                <input type="hidden" name="selectedDashboardId" id="selectedDashboardId" value="">
+                            <div class="col-lg-3">
+                                <div class="contact-box">
+                                    <a href="#">
+                                        <div class="col-sm-4">
+                                            <div class="text-center">
+                                                <a class="btn btn-primary dim" id="launchReport1{{ item.DashboardId }}" type="button"><i class="fa fa-check"></i></a>
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-8">
+                                            <h3><strong>{{  item.Title }}</strong></h3>
+                                            <p>{{ item.ReportDescription }}</p>
+                                            <h4><strong><a id="launchReport2{{ item.DashboardId }}">Launch</a></strong></h4>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                    </a>
+                                </div>
+                            </div>
+
+{#                <div class="col-lg-3">#}
+{#                    <div class="ibox-content text-center">#}
+{#                        <div class="row">#}
+{#                            <div class="col-xs-4">#}
+{#                                <a class="btn btn-success btn-circle btn-lg" id="launchReport2{{ item.DashboardId }}"><i#}
+{#                                        class="fa fa-link"></i></a></i>#}
+{#                            </div>#}
+{#                            <div class="col-xs-8 text-right">#}
+{#                                <h2 class="font-bold">{{ item.Title }}</h2>#}
+{#                                <h3> {{ item.ReportDescription }} </h3>#}
+{#                            </div>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+                <script>
+                    $("#launchReport1{{ item.DashboardId }}").click(function () {
+                        $("#selectedDashboardId").val("{{ item.DashboardId }}");
+                        $('#showReport').submit();
+                    });
+                    $("#launchReport2{{ item.DashboardId }}").click(function () {
+                        $("#selectedDashboardId").val("{{ item.DashboardId }}");
+                        $('#showReport').submit();
+                    });
+                </script>
+                {% if forloop.counter|divisibleby:4 %}
+                    </div><div class="row">
+                {% endif %}
+        </form>
+    {% endfor %}
+    </div>
+
+
+    <br>
+    <br>
+
+    <link href="{% static "assets/css/plugins/datapicker/datepicker3.css" %}" rel="stylesheet">
+    <!-- Data picker -->
+    <script src="{% static "assets/js/plugins/datapicker/bootstrap-datepicker.js" %}"></script>
+    <!-- Date range use moment.js same as full calendar plugin -->
+    <script src="{% static "assets/js/plugins/fullcalendar/moment.min.js" %}"></script>
+    <!-- Date range picker -->
+    <script src="{% static "assets/js/plugins/daterangepicker/daterangepicker.js" %}"></script>
+
+
+    <script>
+        {#function FilterReportList()#}
+        {#{#}
+        {#    var input, filter, ul, li, a, i;#}
+        {#    input = document.getElementById("filter_reportlist");#}
+        {#    filter = input.value.toUpperCase();#}
+        {#    ul = document.getElementById("filterable_content");#}
+        {#    li = ul.getElementsByClassName("contact-box");#}
+        {#    for (i = 0; i < li.length; i++) {#}
+        {#        a = li[i].getElementsByTagName("strong")[0];#}
+        {#        if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {#}
+        {#            li[i].style.display = "";#}
+        {#        } else {#}
+        {#            li[i].style.display = "none";#}
+        {##}
+        {#        }#}
+        {#    }#}
+        {#}#}
+        $(document).ready(function () {
+            $("#filter_reportlist").on("keyup", function() {
+                var value = $(this).val().toLowerCase();
+                $(".contact-box").filter(function() {
+                  $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+                });
+              });
+        });
+
+
+    </script>
+
+{% endblock %}

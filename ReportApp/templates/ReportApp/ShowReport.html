@@ -1,0 +1,229 @@
+{% extends "./public/CommonBaseLayout.html" %}
+{% load static %}
+{% block main_content %}
+
+<script src="{% static "assets/js/powerbi.min.js" %}"></script>
+    <style type="text/css">
+        @media screen and (max-width: 1400px) and (min-width: 800px) {
+            #reportContainer {
+                height: 650px;
+            }
+        }
+
+        @media screen and (max-width: 2000px) and (min-width: 1401px) {
+            #reportContainer {
+                height: 890px;
+            }
+        }
+
+        @media (min-width: 1920px) and (max-width: 2560px)  {
+            #reportContainer {
+                width: 100%;
+                height: 1050px;
+            }
+        }
+
+        @media only screen and (max-width: 600px) {
+            #reportContainer {
+                width: 100%;
+                height: 800px;
+            }
+        }
+
+        iframe{
+            border: 0;
+        }
+    </style>
+
+<div class="page-content p-4 p-sm-6">
+    <div id="reportContainer"></div>
+</div>
+
+<script>
+$(document).ready(function()
+{
+    // Get models. models contains enums that can be used.
+    var deviceType = {{ DeviceType }};  //1 means PC, 2 means mobile, 3 means tablet
+    var valid = "{{ pbiEmbeddedToken.EmbedUrl }}";
+    var reportPageList = [];
+    if(valid == "")
+    {
+        $('#reportContainer').append('<br><div class="alert alert-danger">Error in getting the report. Possible reason can be report id changed or new report replaced old existing report caused changing in report id. Please update the old report id with new one.</div>');
+    }
+    else if (typeof valid !== "")
+    {
+        var accessToken = "{{ pbiEmbeddedToken.EmbedToken }}";
+        var embedUrl = "{{ pbiEmbeddedToken.EmbedUrl }}";
+        var embedReportId = "{{ pbiEmbeddedToken.Id }}";
+        var models = window['powerbi-client'].models;
+        if (deviceType === 2 || deviceType === 3)
+        {
+            var config = {
+                type: 'report',
+                tokenType: models.TokenType.Embed,
+                accessToken: accessToken,
+                embedUrl: embedUrl,
+                id: embedReportId,
+                permissions: models.Permissions.All,
+                settings: {
+                        filterPaneEnabled: false,
+                        navContentPaneEnabled: false,
+                        layoutType: models.LayoutType.MobilePortrait
+                    }
+                };
+        }
+        else {
+            var config = {
+            type: 'report',
+            tokenType: models.TokenType.Embed,
+            accessToken: accessToken,
+            embedUrl: embedUrl,
+            id: embedReportId,
+            permissions: models.Permissions.All,
+            settings: {
+                    filterPaneEnabled: false,
+                    navContentPaneEnabled: true,
+                }
+            };
+        }
+
+        // Get a reference to the embedded report HTML element
+        var reportContainer = $('#reportContainer')[0];
+
+        // Embed the report and display it within the div container.
+        var report = powerbi.embed(reportContainer, config);
+
+        //When the report is loaded, Get all pages of that report and populate the dropdown at top with report page names
+        report.on('loaded', function () {
+            report.getPages().then(function (pages)
+            {
+                reportPageList = pages;
+                $("#dropdownPageList").empty();
+                $.each(pages, function (index, value)
+                {
+                    var item = '<a class="dropdown-item" href="#">'+
+                                    '<div class="row no-gutters align-items-center flex-nowrap">' +
+                                        '<i class="status text-green icon-checkbox-marked-circle"></i><span class="px-3">' + value.displayName + '</span>'+
+                                    '</div>'+
+                                '</a>';
+                    $("#dropdownPageList").append(item);
+                });
+
+                $('#dropdownPageList a').click(function(e){
+                    console.log($(this).text());
+                    for(var k=0; k < reportPageList.length; k++)
+                    {
+                        if(reportPageList[k].displayName === $(this).text())
+                        {
+                            reportPageList[k].setActive();
+                            break;
+                        }
+
+                    }
+                });
+
+            });
+        });
+
+
+
+
+        //console.log(pages);
+        report.on("swipeEnd", function(event)
+        {
+            const swipeEndEvent = event.detail.swipeEvent;
+            if (swipeEndEvent.currentPosition.x < swipeEndEvent.startPosition.x)
+            {
+                var pagesList = [];
+                //Getting all pages list and insert it into an array
+                report.getPages()
+                    .then(function (pages) {
+                        pages.forEach(function(page) {
+                            var log = page.name + " - " + page.displayName;
+                            pagesList.push(page);
+                            console.log(log);
+                        });
+                    })
+                    .catch(function (error) {
+                        console.log(error);
+                    });
+                //Finding the active page
+                var activePage;
+                report.getPages()
+                    .then(function (pages)
+                    {
+                        // Retrieve active page.
+                        activePage = pages.find(function (page) {
+                            return page.isActive
+                        });
+                        console.log("Active One is: " + activePage.name);
+                        //Get Active Page Index
+                        var activePageIndex = 0;
+                        for(var i=0; i<pagesList.length; i++)
+                        {
+                            if(pagesList[i].name === activePage.name)
+                            {
+                                activePageIndex = i;
+                                break;
+                            }
+                        }
+                        if(activePageIndex + 1 < pagesList.length)
+                            pagesList[activePageIndex + 1].setActive();
+                        else
+                            pagesList[0].setActive();
+                    })
+                    .catch(function (errors) {
+                        console.log(errors);
+                    });
+            }
+        });
+
+        $("#report_full_screen").click(function ()
+        {
+            var embedContainer = $('#reportContainer')[0];
+            report = powerbi.get(embedContainer);
+            report.fullscreen();
+        });
+
+        $("#report_refresh").click(function () {
+            var embedContainer = $('#reportContainer')[0];
+            report = powerbi.get(embedContainer);
+            report.refresh()
+                .then(function (result) {
+                    console.log("Refreshed");
+                })
+                .catch(function (errors) {
+                    console.log(errors);
+                });
+        });
+
+        $("#report_reload").click(function () {
+            var embedContainer = $('#reportContainer')[0];
+            report = powerbi.get(embedContainer);
+            report.reload()
+                .then(function (result) {
+                    Log.logText("Reloaded");
+                })
+                .catch(function (errors) {
+                    Log.log(errors);
+                });
+        });
+
+        $("#report_print").click(function () {
+            var embedContainer = $('#reportContainer')[0];
+            report = powerbi.get(embedContainer);
+            report.print()
+                .then(function (result) {
+                    console.log(result);
+                })
+                .catch(function (errors) {
+                    console.log(errors);
+                });
+
+        });
+
+    }
+});
+
+</script>
+{% endblock %}

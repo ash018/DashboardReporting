@@ -1,0 +1,605 @@
+{% extends "./public/CommonBaseLayout.html" %}
+{% load static %}
+{% block main_content %}
+
+
+<style type="text/css">
+
+</style>
+
+<script src="{% static "assets/js/plugins/footable/footable.all.min.js" %}"></script>
+<link href="{% static "assets/css/plugins/footable/footable.core.css" %}" rel="stylesheet">
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-4">
+        <h2>Manage Permission </h2>
+        <ol class="breadcrumb">
+{#                    <li>#}
+{#                        <a href="index.html">This is</a>#}
+{#                    </li>#}
+{#            <li class="active">#}
+{#                <strong>HP Dashboard</strong>#}
+{#            </li>#}
+        </ol>
+    </div>
+    <div class="col-sm-8">
+{#        <div class="title-action" style="float: right">#}
+{#            <a href="https://app.powerbi.com/view?r=eyJrIjoiMjM4NTBmYzAtYTZmYy00ZWFiLWI5YmUtYWUzNjJhZmRmYWU1IiwidCI6IjY1M2JkM2UxLTM2ZmYtNDM5OS1iMGFhLWY3ZTYzYTAyOTU5NyIsImMiOjEwfQ%3D%3D" target="_blank" class="btn btn-info">Full Screen</a>#}
+{#        </div>#}
+{#        <div class="title-action" style="float: right; margin-right: 10px;">#}
+{#            <a href="" class="btn btn-primary">Next</a>#}
+{#        </div>#}
+    </div>
+</div>
+
+
+<br>
+<div class="wrapper wrapper-content animated fadeInRight">
+
+    <div class="row">
+        <div class="col-lg-12">
+            {% if message|length > 0 %}
+                {{ message|safe }}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+
+
+        <div class="col-lg-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Provide Access</h5>
+
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <li><a href="#">Config 1</a>
+                            </li>
+                            <li><a href="#">Config 2</a>
+                            </li>
+                        </ul>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+
+
+
+                    <form class="form-horizontal" method="post" enctype="multipart/form-data" action="/managepermission">
+                    {% csrf_token %}
+                        <div class="form-group"><label class="col-sm-4 control-label">Select User</label>
+                            <div class="col-sm-8">
+                                <select class="form-control m-b" name="userid_grant_access" id="userid_grant_access">
+                                    {% for item in distinctUsers %}
+                                        <option value="{{ item.UserId }}" {% if item.UserId == selectedUserId  %} selected {% endif %}>{{ item.UserId }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group"><label class="col-sm-4 control-label">Select Dashboard</label>
+                            <div class="col-sm-8">
+                                <select class="form-control m-b" name="dashboardId_grant_access" id="dashboardId_grant_access">
+                                    {% for item in distinctDashboards %}
+                                        <option value="{{ item.DashboardId }}">{{ item.title }}  (Report Id:{{ item.DashboardId }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+{#                        <div class="form-group"><label class="col-sm-2 control-label">Report Order</label>#}
+{#                            <div class="col-sm-5">#}
+{#                                <select class="form-control m-b" name="reportorder" id="reportorder">#}
+{#                                    <option value="0">Add On Top</option>#}
+{#                                    {% for item in dropdownReportOrder %}#}
+{#                                        <option value="{{ item.ReportOrder }}">Add After - {{ item.title }} (Report Id:{{ item.DashboardId }})</option>#}
+{#                                    {% endfor %}#}
+{#                                </select>#}
+{#                            </div>#}
+{#                        </div>#}
+
+                        <input type="hidden" name="actionType" id="actionType" value="AddPermission">
+
+                        <div class="hr-line-dashed"></div>
+                        <div class="form-group">
+                            <div class="col-sm-4 col-sm-offset-2">
+                                <button class="btn btn-success" type="submit"  name="add_mapping" id="add_mapping">Grant Permission</button>
+                            </div>
+                        </div>
+                    </form>
+
+
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-lg-6">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Delete Access</h5>
+
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <li><a href="#">Config 1</a>
+                            </li>
+                            <li><a href="#">Config 2</a>
+                            </li>
+                        </ul>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+
+                    <form class="form-horizontal" method="post" enctype="multipart/form-data" action="/managepermission">
+                    {% csrf_token %}
+                        <div class="form-group"><label class="col-sm-4 control-label">Select User</label>
+                            <div class="col-sm-8">
+                                <select class="form-control m-b" name="userid_delete_access" id="userid_delete_access">
+                                    {% for item in distinctUsers %}
+                                        <option value="{{ item.UserId }}" {% if item.UserId == selectedUserId  %} selected {% endif %}>{{ item.UserId }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group"><label class="col-sm-4 control-label">Select Dashboard</label>
+                            <div class="col-sm-8">
+                                <select class="form-control m-b" name="dashboardId_delete_access" id="dashboardId_delete_access">
+                                    {% for item in dashboardAssigned %}
+                                        <option value="{{ item.DashboardId }}">{{ item.title }}  (Report Id:{{ item.DashboardId }})</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+{#                        <div class="form-group"><label class="col-sm-2 control-label">Report Order</label>#}
+{#                            <div class="col-sm-5">#}
+{#                                <select class="form-control m-b" name="reportorder" id="reportorder">#}
+{#                                    <option value="0">Add On Top</option>#}
+{#                                    {% for item in dropdownReportOrder %}#}
+{#                                        <option value="{{ item.ReportOrder }}">Add After - {{ item.title }} (Report Id:{{ item.DashboardId }})</option>#}
+{#                                    {% endfor %}#}
+{#                                </select>#}
+{#                            </div>#}
+{#                        </div>#}
+
+                        <input type="hidden" name="actionType" id="actionType" value="DeletePermission">
+
+                        <div class="hr-line-dashed"></div>
+                        <div class="form-group">
+                            <div class="col-sm-4 col-sm-offset-2">
+                                <button class="btn btn-danger" type="submit"  name="delete_mapping" id="delete_mapping">Delete Access</button>
+                            </div>
+                        </div>
+                    </form>
+
+
+
+                </div>
+            </div>
+        </div>
+
+
+
+    </div>
+
+
+
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Report Order Sorting For</h5><small class="label label-warning" id="sortingFor">{{ selectedUserId }}</small>
+
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <li><a href="#">Config 1</a>
+                            </li>
+                            <li><a href="#">Config 2</a>
+                            </li>
+                        </ul>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+
+                    <form class="form-horizontal" method="post" enctype="multipart/form-data" action="/managepermission">
+                    {% csrf_token %}
+                        <ul id="sortable">
+                            {% for item in dashboardAssigned %}
+                                <li class="ui-state-default" style="line-height: 35px; list-style: none; border: 0.5px solid #ece5e5" id="{{ item.DashboardId }}"><span class="fa fa-users"></span>{{ item.title }}</li>
+                            {% endfor %}
+                        </ul>
+                        <input type="hidden" name="UserIdForUpdate" id="UserIdForUpdate" value="{{ selectedUserId }}">
+                        <input type="hidden" name="reportOrder" id="reportOrder" value="">
+                        <input type="hidden" name="actionType" id="actionType" value="UpdateOrder">
+
+                        <div class="form-group">
+                            <div class="col-sm-4 col-sm-offset-10">
+                                <button class="btn btn-success" type="submit">Update Order</button>
+                            </div>
+                        </div>
+                    </form>
+
+
+{#                    <div class="dd" id="nestable2">#}
+{#                        <form class="form-horizontal" method="post" enctype="multipart/form-data" action="/managepermission">#}
+{#                        {% csrf_token %}#}
+{#                            <ol class="dd-list">#}
+{#                                {% for item in dashboardAssigned %}#}
+{#                                    <li class="dd-item" data-id="{{ item.ReportOrder }}">#}
+{#                                        <div class="dd-handle">#}
+{#                                            <span class="label label-info"><i class="fa fa-users"></i></span> {{ item.title }} (Report Id:{{ item.DashboardId }})#}
+{#                                        </div>#}
+{#                                    </li>#}
+{#                                {% endfor %}#}
+{##}
+{#                            </ol>#}
+{#                            <input type="hidden" name="actionType" id="actionType" value="UpdateOrder">#}
+{#                            <input type="hidden" name="reportOrder" id="reportOrder" value="">#}
+{#                            <div class="hr-line-dashed"></div>#}
+{#                            <div class="form-group">#}
+{#                                <div class="col-sm-4 col-sm-offset-2">#}
+{#                                    <button class="btn btn-success" type="submit"  name="add_mapping" id="add_mapping">Update Order</button>#}
+{#                                </div>#}
+{#                            </div>#}
+{#                        </form>#}
+{#                    </div>#}
+
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Permission Status</h5>
+
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <li><a href="#">Config 1</a>
+                            </li>
+                            <li><a href="#">Config 2</a>
+                            </li>
+                        </ul>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <input type="text" class="form-control input-sm m-b-xs" id="filter" placeholder="Search in table">
+                    <table class="footable table table-stripped" data-page-size="8" data-filter=#filter  id="mapTable">
+                        <thead>
+                            <tr>
+                                <th>UserId</th>
+                                <th>Email</th>
+                                <th>Status</th>
+                                <th>Title</th>
+                                <th>Url</th>
+                                <th>Report Order</th>
+                                <th>Modification Date</th>
+                                <th>Report Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        {% for item in userDashboardMapList %}
+                            <tr class="gradeC">
+                                <td>{{ item.UserId }}</td>
+                                <td>{{ item.Email }}</td>
+                                <td>
+                                    {% if item.IsActive is 1 %}
+                                        <span class="label label-primary">Active</span>
+                                    {% elif item.IsActive is 0 %}
+                                        <span class="label label-danger">Disable</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.Title }}</td>
+                                <td><a href="{{ item.Url }}" target="_blank">Launch Dashboard</a></td>
+                                <td>{{ item.ReportOrder }}</td>
+                                <td>{{ item.ModifyDate|date:'Y-m-d H:i' }}</td>
+                                <td>{{ item.ReportDescription }}</td>
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="5">
+                                <ul class="pagination pull-right"></ul>
+                            </td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+</div>
+
+
+<link href="{% static "assets/css/plugins/datapicker/datepicker3.css" %}" rel="stylesheet">
+<!-- Data picker -->
+<script src="{% static "assets/js/plugins/datapicker/bootstrap-datepicker.js" %}"></script>
+<!-- Date range use moment.js same as full calendar plugin -->
+<script src="{% static "assets/js/plugins/fullcalendar/moment.min.js" %}"></script>
+<!-- Date range picker -->
+<script src="{% static "assets/js/plugins/daterangepicker/daterangepicker.js" %}"></script>
+
+<script>
+var reportOrder = [];
+$(document).ready(function()
+{
+    $('.footable').footable();
+
+    //Select User for assigning new report. So get all the reports that the user has no access.
+    $('#userid_grant_access').change(function ()
+    {
+        if ($('#userid_grant_access').val() != '')
+        {
+            var selectedUser = $('#userid_grant_access').val();
+            $.ajax({
+                url: '/AJX_GetUserDashboardsNotAssigned/',
+                type: 'get',
+                data: {
+                    'selectedUser': selectedUser
+                },
+                dataType: 'json',
+                success: function (data)
+                {
+                    console.log(data);
+                    $('#dashboardId_grant_access').empty();
+                    for (i = 0; i < data.result.length; i++)
+                    {
+                        var optionData = '<option value="'+ data.result[i]['DashboardId'] +'">' +  data.result[i]['title'] + ' (Report Id:' + data.result[i]['DashboardId']  + ')</option>';
+                        $('#dashboardId_grant_access').append(optionData);
+                    }
+                }
+            });
+        }
+    });
+
+
+    $('#userid_delete_access').change(function ()
+    {
+        if ($('#userid_delete_access').val() != '')
+        {
+            var selectedUser = $('#userid_delete_access').val();
+            $("#UserIdForUpdate").val(selectedUser);
+            $("#sortingFor").html(selectedUser);
+            $.ajax({
+                url: '/AJX_GetUserDashboardsAssigned/',
+                type: 'get',
+                data: {
+                    'selectedUser': selectedUser
+                },
+                dataType: 'json',
+                success: function (data)
+                {
+                    //console.log(data);
+                    $('#dashboardId_delete_access').empty();
+                    $('#sortable').empty();
+                    for (i = 0; i < data.result.length; i++)
+                    {
+                        var optionData = '<option value="'+ data.result[i]['DashboardId'] +'">' +  data.result[i]['title'] + ' (Report Id:' + data.result[i]['DashboardId']  + ')</option>';
+                        $('#dashboardId_delete_access').append(optionData);
+                        $('#sortable').append('<li class="ui-state-default" style="line-height: 35px; list-style: none; border: 0.5px solid #ece5e5" id="'+ data.result[i]['DashboardId'] +'"><span class="fa fa-users"></span> '+ data.result[i]['title'] +'</li>');
+                    }
+                }
+            });
+        }
+    });
+
+    //actionType is used in view.py to detect whether it is a delete event or add event
+    $("#add_mapping").click(function()
+    {
+        $("#actionType").val("AddPermission");
+        return true;
+    });
+
+    $("#delete_mapping").click(function()
+    {
+        $("#actionType").val("DeletePermission");
+        return true;
+    });
+
+    $( "#sortable" ).sortable({
+        stop: function(event, ui)
+        {
+            //console.log(ui.item);
+            var newOrder = $("#sortable").sortable("toArray");
+            temp = []
+            for(var i=0; i<newOrder.length; i++)
+            {
+                temp.push(parseInt(newOrder[i]))
+            }
+            temp = JSON.stringify(temp);
+            console.log(temp);
+            $("#reportOrder").val(temp);
+        }
+    });
+    $( "#sortable" ).disableSelection();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //Getting first time loaded report order into a list
+    //UpdateCurrentReportOrder();
+
+{#    $("#sortable").sortable({#}
+{#        stop: function(event, ui)#}
+{#        {#}
+{#            alert("New position: " + ui.item.index());#}
+{#            console.log(ui);#}
+{#            alert(ui.item.context);#}
+{#        }#}
+{#    });#}
+{#    $("#sortable").disableSelection();#}
+
+
+{#    var updateOutput = function (e)#}
+{#    {#}
+{#         var list = e.length ? e : $(e.target),#}
+{#         output = list.data('output');#}
+{#         newReportOrder = list.nestable('serialize');#}
+{#         var sortedJsonString = window.JSON.stringify(list.nestable('serialize'));#}
+{#         console.log(sortedJsonString);#}
+{#         $("#reportOrder").val(sortedJsonString);#}
+{##}
+{#         if(  !CheckUpdatedOrder(reportOrder, newReportOrder)  )#}
+{#         {#}
+{#             var sortedJsonString = window.JSON.stringify(list.nestable('serialize'));#}
+{#             AJX_UpdateReportOrder(sortedJsonString);#}
+{#         }#}
+{##}
+{#         if (window.JSON) {#}
+{#             output.val(window.JSON.stringify(list.nestable('serialize')));//, null, 2));#}
+{#         } else {#}
+{#             output.val('JSON browser support required for this demo.');#}
+{#         }#}
+{#    };#}
+
+     // activate Nestable for list 2
+{#     $('#nestable2').nestable({#}
+{#         group: 1#}
+{#     }).on('change', updateOutput);#}
+{##}
+{#     updateOutput($('#nestable2').data('output', $('#nestable2-output')));#}
+
+{#     $('#nestable-menu').on('click', function (e) {#}
+{#         alert("Down");#}
+{#         var target = $(e.target),#}
+{#                 action = target.data('action');#}
+{#         if (action === 'expand-all') {#}
+{#             $('.dd').nestable('expandAll');#}
+{#         }#}
+{#         if (action === 'collapse-all') {#}
+{#             $('.dd').nestable('collapseAll');#}
+{#         }#}
+{#     });#}
+
+    function CheckUpdatedOrder(reportOrder, newReportOrder)
+    {
+        for(var i=0; i<reportOrder.length; i++)
+        {
+            if(reportOrder[i]['id'] == newReportOrder[i]['id'])
+                continue;
+            else
+                return false;
+        }
+        return true;
+    }
+
+     function AJX_UpdateReportOrder(sortedJsonString)
+     {
+         $.ajax({
+            url: '/AJX_UpdateReportOrder/',
+            type: 'get',
+            data: {
+                'data': sortedJsonString
+            },
+            //dataType: 'json',
+            success: function (data)
+            {
+                console.log(data);
+
+            }
+        });
+     }
+
+     function UpdateCurrentReportOrder()
+     {
+         {% for item in dropdownReportOrder %}
+             reportOrder.push( {'id': {{ item.ReportOrder }}} );
+         {% endfor %}
+     }
+
+});
+
+
+</script>
+
+{% endblock %}

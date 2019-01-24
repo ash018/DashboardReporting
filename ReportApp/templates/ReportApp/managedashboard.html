@@ -1,0 +1,466 @@
+{% extends "./public/CommonBaseLayout.html" %}
+{% load static %}
+
+{% block main_content %}
+
+<script src="{% static "assets/js/plugins/footable/footable.all.min.js" %}"></script>
+<link href="{% static "assets/css/plugins/footable/footable.core.css" %}" rel="stylesheet">
+<style type="text/css">
+
+</style>
+
+    <div class="row wrapper border-bottom white-bg page-heading">
+        <div class="col-sm-4">
+            <h2>Manage Dashboards </h2>
+            <ol class="breadcrumb">
+                {#                    <li>#}
+                {#                        <a href="index.html">This is</a>#}
+                {#                    </li>#}
+                {#            <li class="active">#}
+                {#                <strong>HP Dashboard</strong>#}
+                {#            </li>#}
+            </ol>
+        </div>
+        <div class="col-sm-8">
+            {#        <div class="title-action" style="float: right">#}
+            {#            <a href="https://app.powerbi.com/view?r=eyJrIjoiMjM4NTBmYzAtYTZmYy00ZWFiLWI5YmUtYWUzNjJhZmRmYWU1IiwidCI6IjY1M2JkM2UxLTM2ZmYtNDM5OS1iMGFhLWY3ZTYzYTAyOTU5NyIsImMiOjEwfQ%3D%3D" target="_blank" class="btn btn-info">Full Screen</a>#}
+            {#        </div>#}
+            {#        <div class="title-action" style="float: right; margin-right: 10px;">#}
+            {#            <a href="" class="btn btn-primary">Next</a>#}
+            {#        </div>#}
+        </div>
+    </div>
+
+
+    <br>
+    <div class="wrapper wrapper-content animated fadeInRight">
+        <div class="row">
+            <div class="col-lg-12">
+
+                {% if message|length > 0 %}
+                    <div class="alert alert-info">
+                        <strong>Success! </strong> {{ message }}
+                    </div>
+                {% endif %}
+                <button type="button" class="btn btn-success pull-right" data-toggle="modal"
+                        data-target="#createDashboardModal">
+                    Create Dashboard
+                </button>
+                <div class="ibox float-e-margins">
+                    <div class="ibox-title">
+                        <h5>Manage Dashboards</h5>
+
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                            <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                                <i class="fa fa-wrench"></i>
+                            </a>
+                            <ul class="dropdown-menu dropdown-user">
+                                <li><a href="#">Config option 1</a>
+                                </li>
+                                <li><a href="#">Config option 2</a>
+                                </li>
+                            </ul>
+                            <a class="close-link">
+                                <i class="fa fa-times"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <input type="text" class="form-control input-sm m-b-xs" id="filter"
+                               placeholder="Search in table">
+                        <table class="footable table table-stripped" data-page-size="8" data-filter=#filter
+                               id="dashboardTable">
+                            <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Id</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Url</th>
+                                <th>Modification Date</th>
+                                <th>GroupId</th>
+                                <th>ReportId</th>
+                                <th colspan="2">Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+
+                            {% for item in dashboardList %}
+                                <tr class="gradeC">
+                                    <td>{% if item.ReportType == 1 %}
+                                            {{ "PowerBI Report"|safe }}
+                                        {% elif item.ReportType == 2 %}
+                                            {{ "PowerBI Dashboard"|safe }}
+                                        {% elif item.ReportType == 3 %}
+                                            {{ "PowerBI Tile"|safe }}
+                                        {% elif item.ReportType == 4 %}
+                                            {{ "PowerBI URL"|safe }}
+                                        {% else %}
+                                            {{ "Non Power BI"|safe }}
+                                        {% endif %}
+                                    </td>
+                                    <td class="col-md-1">{{ item.DashboardId }}</td>
+                                    <td class="col-md-2">{{ item.Title }}</td>
+                                    <td class="col-md-1">{{ item.ReportDescription }}</td>
+                                    <td><a href="{{ item.Url }}" target="_blank">Open</a></td>
+                                    <td>{{ item.ModifyDate|date:'Y-m-d H:i' }}</td>
+                                    <td>{{ item.GroupId }}</td>
+                                    <td>{{ item.ReportId }}</td>
+
+
+                                    <td>
+                                        <button class="btn btn-warning" data-toggle="modal" data-target="#editDashboardModal">Edit</button>
+                                    </td>
+                                    <td>
+                                        <form class="form-horizontal" method="post" enctype="multipart/form-data"
+                                              action="/managedashboard">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="actionType" value="DeleteDashboard">
+                                            <input type="hidden" name="dashboardId" value="{{ item.DashboardId }}">
+                                            <button class="btn btn-danger">Delete</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+
+                            </tbody>
+                            <tfoot>
+                            <tr>
+                                <td colspan="5">
+                                    <ul class="pagination pull-right"></ul>
+                                </td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Create Dashboard Modal -->
+    <div class="modal inmodal" id="createDashboardModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                            class="sr-only">Close</span></button>
+                    <i class="fa fa-laptop modal-icon"></i>
+                    <h4 class="modal-title">Create Dashboard</h4>
+                </div>
+                <div class="modal-body">
+
+                    <form id="dashboardCreate" class="form-horizontal" method="post" enctype="multipart/form-data"
+                          action="/managedashboard" style="display: block">
+                        {% csrf_token %}
+                        <div class="form-group" style="display: block">
+                            <label class="control-label" for="status">Reoprt Type</label>
+                            <select class="form-control" name="ReportType" id="selectOption">
+                                <option value="1" selected>PowerBI Report</option>
+                                <option value="2">PowerBI Dashboard</option>
+                                <option value="3">PowerBI Tile</option>
+                                <option value="4">PowerBI URL</option>
+                                <option value="100">Non Power BI</option>
+                            </select>
+                            <div class="help-block with-errors"></div>
+                        </div>
+                        <div class="form-group" id="title">
+                            <label class="control-label" for="title">Title:</label>
+                            <input type="text" name="ReportTitle" class="form-control" data-error="Please enter title." required/>
+                            <div class="help-block with-errors"></div>
+                        </div>
+
+                        <div class="form-group" id="description" style="display: none">
+                            <label class="control-label" for="title">Description:</label>
+                            <input type="text" name="ReportDescription" class="form-control" data-error="Please enter description." required/>
+                            <div class="help-block with-errors"></div>
+                        </div>
+
+                        <div class="form-group" id="url" style="display: none">
+                            <label class="control-label">Url:</label>
+                            <input type="text" name="ReportDashboardUrl" class="form-control" data-error="Please enter Url." required/>
+                            <div class="help-block with-errors"></div>
+                        </div>
+
+                        <div class="form-group" id="groupId" style="display: none">
+                            <label class="control-label" for="title">GroupID:</label>
+                            <input type="text" name="Group_Id" class="form-control" data-error="Please enter Group Id"/>
+                            <div class="help-block with-errors"></div>
+                        </div>
+
+                        <div class="form-group" id="reportId" style="display: none">
+                            <label class="control-label" for="title">ReportID:</label>
+                            <input type="text" name="Report_Id" class="form-control" data-error="Please enter Report Id"/>
+                            <div class="help-block with-errors"></div>
+                        </div>
+
+                        <input type="hidden" name="actionType" value="AddDashboard">
+{#                            <input type="hidden" id="ReportType" name="ReportType" value="">#}
+
+                        <div class="modal-footer" id="action" style="display: none">
+                            <button type="submit" class="btn btn-primary">Add</button>
+                            <button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Edit Dashboard Modal -->
+    <div class="modal inmodal" id="editDashboardModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog">
+            <div class="modal-content animated bounceInRight">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                            class="sr-only">Close</span></button>
+                    <i class="fa fa-laptop modal-icon"></i>
+                    <h4 class="modal-title">Edit Dashboard</h4>
+                </div>
+
+                <div class="modal-body">
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <link href="{% static "assets/css/plugins/datapicker/datepicker3.css" %}" rel="stylesheet">
+    <!-- Data picker -->
+    <script src="{% static "assets/js/plugins/datapicker/bootstrap-datepicker.js" %}"></script>
+    <!-- Date range use moment.js same as full calendar plugin -->
+    <script src="{% static "assets/js/plugins/fullcalendar/moment.min.js" %}"></script>
+    <!-- Date range picker -->
+    <script src="{% static "assets/js/plugins/daterangepicker/daterangepicker.js" %}"></script>
+
+    <script>
+        $(document).ready(function ()
+        {
+            InitializeCreateDashboardModal(1);
+            $("#selectOptionEdit, #editDashboardModal ").on('change',function ()
+            {
+                var selectedReportType = $('#selectOptionEdit  option:selected','#editDashboardModal').val();
+                console.log('Report type selected: '+ selectedReportType);
+                ToggleGroupIDReportIdTextfields(selectedReportType);
+            });
+
+            function ToggleGroupIDReportIdTextfields(selectedReportType)
+            {
+                if (selectedReportType == 1)    //power bi reports
+                {
+                    $("#editDashboardModal div[id='GroupIdEdit']").attr("style","display:block");//css("display", "block");//.show();//css("display:block");  //attr("style","display:block");
+                    $("#editDashboardModal div[id='ReportIdEdit']").attr("style","display:block");
+
+                }
+                else if (selectedReportType == 2)    //power bi dashboards
+                {
+                    $("#editDashboardModal div[id='GroupIdEdit']").attr("style","display:block");//css("display", "block");//.show();//css("display:block");  //attr("style","display:block");
+                    $("#editDashboardModal div[id='ReportIdEdit']").attr("style","display:block");
+
+                }
+                else if (selectedReportType == 3)    //power bi tiles
+                {
+                    $("#editDashboardModal div[id='GroupIdEdit']").attr("style","display:block");//css("display", "block");//.show();//css("display:block");  //attr("style","display:block");
+                    $("#editDashboardModal div[id='ReportIdEdit']").attr("style","display:block");
+
+                }
+                else if (selectedReportType == 4)    //power bi URL
+                {
+                    $("#editDashboardModal div[id='GroupIdEdit']").attr("style","display:none");//css("display", "block");//.show();//css("display:block");  //attr("style","display:block");
+                    $("#editDashboardModal div[id='ReportIdEdit']").attr("style","display:none");
+
+                }
+                else if (selectedReportType == 100)   //non power bi reports
+                {
+                     $("#editDashboardModal div[id='GroupIdEdit']").attr("style","display:none");//css("display", "none");//.hide();//css("display:none"); //.attr("style","display:none");
+                     $("#editDashboardModal div[id='ReportIdEdit']").attr("style","display:none");
+                }
+            }
+
+
+
+            $('.footable').footable();
+            $(".btn[data-target='#editDashboardModal']").click(function (e)
+            {
+                var columnHeadings = $("#dashboardTable thead th").map(function () {
+                    return $(this).text();
+                }).get();
+                columnHeadings.pop();
+
+                var columnValues = $(this).parent().siblings().map(function () {
+                    return $(this).text();
+                }).get();
+
+                var temp = $(this).parent().siblings().map(function () {
+                    return this;
+                }).get();
+
+                var report_type;
+                var dashboardUrl = $(temp[4].outerHTML).find('a:first').attr('href');
+                var modalBody = $('<div id="modalContent"></div>');
+                var modalForm = $('<form role="form" name="modalForm" action="/managedashboard" method="post"></form>');
+                $.each(columnHeadings, function (i, columnHeader)
+                {
+                    if (i == 0)  //Report type column. Based on report type, select power BI or Non power BI on dropdown
+                    {
+                        if(columnValues[i] == "PowerBI Report")
+                            report_type = 1;
+                        else  if(columnValues[i] == "PowerBI Dashboard")
+                            report_type = 2;
+                        else  if(columnValues[i] == "PowerBI Tile")
+                            report_type = 3;
+                        else  if(columnValues[i] == "PowerBI URL")
+                            report_type = 4;
+                        else  if(columnValues[i] == "Non Power BI")
+                            report_type = 100;
+
+                        console.log(columnValues[i]);
+                        var formGroup = $('<div class="form-group"></div>');
+                        formGroup.append('<label for="Type">ReportType</label>');
+                        formGroup.append('<select class="form-control" name="ReportType" id="selectOptionEdit"   > \
+                                            <option value="1" ' + (report_type == 1 ? 'selected' : '') +'>PowerBI Report</option> \
+                                            <option value="2" ' + (report_type == 2 ? 'selected' : '') + '>PowerBI Dashboard</option> \
+                                            <option value="3" ' + (report_type == 3 ? 'selected' : '') + '>PowerBI Tile</option> \
+                                            <option value="4" ' + (report_type == 4 ? 'selected' : '') + '>PowerBI URL</option> \
+                                            <option value="100" ' + (report_type == 100 ? 'selected' : '') + '>Non Power BI</option> \
+                                        </select>');
+                        modalForm.append(formGroup);
+
+                    }
+                    else if (i == 1)  //this is the dashboardId. Dont let user modify it. Put it in hidden field for accesing in views.py
+                    {
+                        var formGroup = $('<div class="form-group"></div>');
+                        formGroup.append('<input type="hidden" name="DashboardId" value="' + columnValues[i] + '"/>');
+                        modalForm.append(formGroup);
+                    }
+                    else if (i == 4)   //This is dashboard Url. So take the href part which is the Url
+                    {
+                        var formGroup = $('<div class="form-group"></div>');
+                        formGroup.append('<label for="DashboardUrl">Url</label>');
+                        formGroup.append('<input class="form-control" name="DashboardUrl" id="DashboardUrl" value="' + dashboardUrl + '" required/>');
+                        modalForm.append(formGroup);
+                    }
+                    else if (i == 6)   //This is GroupId column
+                    {
+                        var formGroup = $('<div class="form-group" id="GroupIdEdit"></div>');
+                        formGroup.append('<label for="GroupId">GroupId</label>');
+                        formGroup.append('<input class="form-control" name="GroupId" id="GroupId"  value="' + columnValues[i] + '"/>');
+                        modalForm.append(formGroup);
+                    }
+                    else if (i == 7)   //This is ReportId column
+                    {
+                        var formGroup = $('<div class="form-group" id="ReportIdEdit"></div>');
+                        formGroup.append('<label for="ReportId">ReportId</label>');
+                        formGroup.append('<input class="form-control" name="ReportId" id="ReportId"  value="' + columnValues[i] + '"/>');
+                        modalForm.append(formGroup);
+                    }
+                    else if (i == 5)   //This is Modification date. So DO NOTHING
+                    {
+
+                    }
+                    else if (i == 2)    //Report Title Column
+                    {
+                        var formGroup = $('<div class="form-group"></div>');
+                        formGroup.append('<label for="Title">Title</label>');
+                        formGroup.append('<input class="form-control" name="Title" id="Title" value="' + columnValues[i] + '"  required />');
+                        modalForm.append(formGroup);
+                    }
+                    else {  //Description Column
+                        var formGroup = $('<div class="form-group"></div>');
+                        formGroup.append('<label for="Description">Description</label>');
+                        formGroup.append('<input class="form-control" name="Description" id="Description" value="' + columnValues[i] + '"  required />');
+                        modalForm.append(formGroup);
+                    }
+
+                });
+                var inputElem = document.createElement('input');
+                inputElem.type = 'hidden';
+                inputElem.name = 'csrfmiddlewaretoken';
+                inputElem.value = '{{ csrf_token }}';
+                modalForm.append(inputElem);
+                modalForm.append('<input type="hidden" name="actionType" id="Action" value="EditDashboard" >');
+                modalForm.append('<div class="modal-footer"><button type="submit" class="btn btn-primary">Save Changes</button><button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button></div>');
+                modalBody.append(modalForm);
+                $('.modal-body').html(modalBody);
+                ToggleGroupIDReportIdTextfields(report_type);
+            });
+
+            //Called from Creat Dashboard Modal. When report dropdown is changed from create modal, this is called
+            $('#selectOption').change(function ()
+            {
+                var value = $('#selectOption').val();
+                InitializeCreateDashboardModal(value);
+            });
+
+            function InitializeCreateDashboardModal(value)
+            {
+                if (value != '')
+                {
+                    if (value == '1' || value == '2')
+                    {
+                        $('#title').show();
+                        $('#description').show();
+                        $('#url').show();
+                        $('#action').show();
+                        $('#groupId').show();
+                        $('#reportId').show();
+                        //$('#ReportType').val("1")
+                    }
+                    else if (value == '2') {
+                        $('#title').show();
+                        $('#description').show();
+                        $('#url').show();
+                        $('#action').show();
+                        $('#groupId').hide();
+                        $('#reportId').hide();
+                        //$('#ReportType').val("2")
+                    }
+
+                } else {
+                    $('#title').hide();
+                    $('#description').hide();
+                    $('#url').hide();
+                    $('#groupId').hide()
+                    $('#reportId').hide();
+                    $('#action').hide();
+                }
+            }
+
+        });
+
+{#            $('#selectOptionEdit').change(function () {#}
+{##}
+{#                if ($('#selectOptionEdit').val() == '1') {#}
+{#                    $('#Title').show();#}
+{#                    $('#Description').show();#}
+{#                    $('#Url').show();#}
+{##}
+{#                    $('#GroupId').show();#}
+{#                    $('#ReportId').show();#}
+{##}
+{#                    $('#reportType').val("PowerBI")#}
+{##}
+{#                } else if ($('#selectOptionEdit').val() == '2') {#}
+{#                    $('#Title').show();#}
+{#                    $('#Description').show();#}
+{#                    $('#Url').show();#}
+{##}
+{#                    $('#GroupId').hide();#}
+{#                    $('#ReportId').hide();#}
+{##}
+{#                    $('#reportType').val("Non PowerBI")#}
+{##}
+{#                }#}
+{##}
+{##}
+{#            });#}
+
+    </script>
+
+{% endblock %}

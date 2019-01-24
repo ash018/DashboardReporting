@@ -1,0 +1,339 @@
+{% extends "./public/CommonBaseLayout.html" %}
+{% load static %}
+{% block main_content %}
+
+<script src="{% static "assets/js/powerbi.min.js" %}"></script>
+
+    <style type="text/css">
+        @media screen and (max-width: 1400px) and (min-width: 800px) {
+            #reportContainer {
+                width: 100%;
+                height: 650px;
+            }
+        }
+
+        @media screen and (max-width: 2000px) and (min-width: 1401px) {
+            #reportContainer {
+                width: 100%;
+                height: 890px;
+            }
+        }
+
+        @media (min-width: 1920px) and (max-width: 2560px)  {
+            #reportContainer {
+                width: 100%;
+                height: 950px;
+            }
+        }
+
+        @media only screen and (max-width: 600px) {
+            #reportContainer {
+                width: 100%;
+                height: 800px;
+            }
+            h2{
+                font-size: 16px;
+            }
+        }
+
+        iframe{
+            border: 0;
+        }
+    </style>
+
+    <div class="row wrapper border-bottom white-bg page-heading">
+        {% if dataset %}
+            <div class="col-lg-4 col-md-4 col-sm-4 col-xs-4">
+                <h2>{{ dataset.Title }}</h2>
+                <ol class="breadcrumb hidden-xs">
+                    <li class="active">
+                        <strong>{{ dataset.ReportDescription }}</strong>
+                    </li>
+                </ol>
+            </div>
+            <div class="col-lg-8 col-md-8 col-sm-8 col-xs-8">
+                {% if reportType == 1 or reportType == 2 %}
+                    <div class="col-lg-9 col-md-9 col-sm-6 col-xs-0">
+                    </div>
+                    <div class="col-lg-1 col-md-1 col-sm-2 col-xs-4">
+                        <div class="title-action" style="float: right">
+                            <button class="btn btn-info btn-xs" id="report_full_screen" type="button"><i class="icon-fullscreen"></i> Full Screen</button>
+                        </div>
+                    </div>
+                    <div class="col-lg-1 col-md-1 col-sm-2 col-xs-4">
+                        <div class="title-action" style="float: right">
+                            <button class="btn btn-warning btn-xs" id="report_print" type="button"><i class="fa fa-print"></i> Print</button>
+                        </div>
+                    </div>
+                    <div class="col-lg-1 col-md-1 col-sm-2 col-xs-4">
+                        <div class="title-action" style="float: right">
+                            <button class="btn btn-success btn-xs" id="report_refresh" type="button"><i class="fa fa-refresh"></i> Refresh</button>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        {% else %}
+            <div class="col-sm-4">
+                <h2>No Report Selected</h2>
+                <ol class="breadcrumb">
+                    <li class="active">
+                        <strong></strong>
+                    </li>
+                </ol>
+            </div>
+            <div class="col-sm-8">
+                <div class="title-action" style="float: right">
+
+                </div>
+            </div>
+
+        {% endif %}
+    </div>
+
+
+    {% if reportType == 1 or reportType == 2 %}
+        <div class="row">
+            <div class="col-sm-12">
+                <div id="reportContainer"></div>
+{#                <iframe src="{{ dataset.Url }}" frameBorder="0" id="reportContainer"></iframe>#}
+            </div>
+        </div>
+        <br>
+
+    {% elif reportType == 4  %}
+        <div class="row">
+            <div class="col-sm-12" id="PowerBIURL">
+                <iframe id="reportContainer" src='{{ dataset.Url }}' width='100%' frameborder='0' scrolling="yes" ></iframe>
+            </div>
+        </div>
+        <br>
+
+    {% elif reportType == 100  %}
+        <div class="row">
+            <div class="col-sm-12" id="NonPowerBi">
+                <iframe id="reportContainer" src='{{ dataset.Url }}' width='100%' frameborder='0' scrolling="yes" ></iframe>
+            </div>
+        </div>
+        <br>
+    {% else %}
+
+        <div class="middle-box text-center animated fadeInDown">
+            <h1>404</h1>
+            <h3 class="font-bold">No Report Found.</h3>
+
+            <div class="error-desc">
+                Please select a report from the left navigation panel.
+            </div>
+        </div>
+
+    {% endif %}
+
+<br>
+<br>
+
+<script>
+$(document).ready(function()
+{
+    // Get models. models contains enums that can be used.
+    var deviceType = {{ DeviceType }};  //1 means PC, 2 means mobile, 3 means tablet
+    var reportType = {{ reportType }};
+    var valid = "{{ pbiEmbeddedToken.EmbedUrl }}";
+    console.log(valid);
+
+    var reportCategory;
+    if(reportType === 1)
+        reportCategory = 'report';
+    else if(reportType === 2)
+        reportCategory = 'dashboard';
+    else if(reportType === 3)
+        reportCategory = 'tile';
+
+    var reportPageList = [];
+    if(valid == "")
+    {
+        $('#reportContainer').append('<br><div class="alert alert-danger">Error in getting the report. Possible reason can be report id changed or new report replaced old existing report caused changing in report id. Please update the old report id with new one.</div>');
+    }
+    else if (typeof valid !== "" && (reportType === 1 || reportType === 2))
+    {
+        var accessToken = "{{ pbiEmbeddedToken.EmbedToken }}";
+        var embedUrl = "{{ pbiEmbeddedToken.EmbedUrl }}";
+        var embedReportId = "{{ pbiEmbeddedToken.Id }}";
+        var models = window['powerbi-client'].models;
+        if (deviceType === 2 || deviceType === 3)
+        {
+            var config = {
+                type: reportCategory,
+                tokenType: models.TokenType.Embed,
+                accessToken: accessToken,
+                embedUrl: embedUrl,
+                id: embedReportId,
+                permissions: models.Permissions.All,
+                settings: {
+                        filterPaneEnabled: false,
+                        navContentPaneEnabled: false,
+                        //background: models.BackgroundType.Transparent,
+                        layoutType: models.LayoutType.MobilePortrait
+                    }
+                };
+        }
+        else {
+            var config = {
+            type: reportCategory,
+            tokenType: models.TokenType.Embed,
+            accessToken: accessToken,
+            embedUrl: embedUrl,
+            id: embedReportId,
+            permissions: models.Permissions.All,
+            settings: {
+                    filterPaneEnabled: false,
+                    navContentPaneEnabled: true
+                    //background: models.BackgroundType.Transparent
+                }
+            };
+        }
+
+        // Get a reference to the embedded report HTML element
+        var reportContainer = $('#reportContainer')[0];
+
+        // Embed the report and display it within the div container.
+        var report = powerbi.embed(reportContainer, config);
+
+        //When the report is loaded, Get all pages of that report and populate the dropdown at top with report page names
+        if(reportCategory == 'report')
+        {
+            report.on('loaded', function () {
+                report.getPages().then(function (pages) {
+                    reportPageList = pages;
+                    $("#dropdownPageList").empty();
+                    $.each(pages, function (index, value) {
+                        var item = '<li><a href="#"><i class="status text-green icon-checkbox-marked-circle"></i>' + value.displayName + '</a></li>';
+                        $("#dropdownPageList").append(item);
+                    });
+
+                    $('#dropdownPageList a').click(function (e) {
+                        console.log($(this).text());
+                        for (var k = 0; k < reportPageList.length; k++) {
+                            if (reportPageList[k].displayName === $(this).text()) {
+                                reportPageList[k].setActive();
+                                break;
+                            }
+
+                        }
+                    });
+
+                });
+            });
+
+
+            //console.log(pages);
+            report.on("swipeEnd", function (event) {
+                const swipeEndEvent = event.detail.swipeEvent;
+                if (swipeEndEvent.currentPosition.x < swipeEndEvent.startPosition.x) {
+                    var pagesList = [];
+                    //Getting all pages list and insert it into an array
+                    report.getPages()
+                        .then(function (pages) {
+                            pages.forEach(function (page) {
+                                var log = page.name + " - " + page.displayName;
+                                pagesList.push(page);
+                                console.log(log);
+                            });
+                        })
+                        .catch(function (error) {
+                            console.log(error);
+                        });
+                    //Finding the active page
+                    var activePage;
+                    report.getPages()
+                        .then(function (pages) {
+                            // Retrieve active page.
+                            activePage = pages.find(function (page) {
+                                return page.isActive
+                            });
+                            console.log("Active One is: " + activePage.name);
+                            //Get Active Page Index
+                            var activePageIndex = 0;
+                            for (var i = 0; i < pagesList.length; i++) {
+                                if (pagesList[i].name === activePage.name) {
+                                    activePageIndex = i;
+                                    break;
+                                }
+                            }
+                            if (activePageIndex + 1 < pagesList.length)
+                                pagesList[activePageIndex + 1].setActive();
+                            else
+                                pagesList[0].setActive();
+                        })
+                        .catch(function (errors) {
+                            console.log(errors);
+                        });
+                }
+            });
+        }
+
+        $("#report_full_screen").click(function ()
+        {
+            var embedContainer = $('#reportContainer')[0];
+            report = powerbi.get(embedContainer);
+            report.fullscreen();
+        });
+
+        $("#report_refresh").click(function () {
+            var embedContainer = $('#reportContainer')[0];
+            report = powerbi.get(embedContainer);
+            report.refresh()
+                .then(function (result) {
+                    console.log("Refreshed");
+                })
+                .catch(function (errors) {
+                    console.log(errors);
+                });
+        });
+
+        $("#report_reload").click(function () {
+            var embedContainer = $('#reportContainer')[0];
+            report = powerbi.get(embedContainer);
+            report.reload()
+                .then(function (result) {
+                    Log.logText("Reloaded");
+                })
+                .catch(function (errors) {
+                    Log.log(errors);
+                });
+        });
+
+        $("#report_print").click(function () {
+            var embedContainer = $('#reportContainer')[0];
+            report = powerbi.get(embedContainer);
+            report.print()
+                .then(function (result) {
+                    console.log(result);
+                })
+                .catch(function (errors) {
+                    console.log(errors);
+                });
+
+        });
+
+        setInterval(AutoRefreshReport, 600000); //Calling AutoRefreshReport after every 10 mins
+
+        function AutoRefreshReport()
+        {
+            var embedContainer = $('#reportContainer')[0];
+            report = powerbi.get(embedContainer);
+            report.refresh()
+                .then(function (result) {
+                    console.log("Triggering Refreshed after every 10 mins.");
+                })
+                .catch(function (errors) {
+                    console.log(errors);
+                });
+        }
+
+
+    }
+});
+
+</script>
+
+{% endblock %}

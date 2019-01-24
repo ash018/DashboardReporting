@@ -1,0 +1,29 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+{% include 'ReportApp/public/CommonHeaderScripts.html' %}
+
+<body class="">
+
+    <div id="wrapper">
+        {% include 'ReportApp/public/LeftNavigationPanel.html' %}
+
+        <div id="page-wrapper" class="gray-bg">
+            {% include 'ReportApp/public/CommonHeader.html' %}
+
+            {% block main_content %}
+                {#his block will contain breadcumb, chart display area and a footer#}
+            {% endblock %}
+
+            {% include 'ReportApp/public/CommonFooter.html' %}
+        </div>
+
+{#        {% include 'ReportApp/public/RightNavigationPanel.html' %}#}
+
+    </div>
+
+</body>
+
+</html>

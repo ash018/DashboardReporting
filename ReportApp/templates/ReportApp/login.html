@@ -1,0 +1,47 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+{% include 'ReportApp/public/CommonHeaderScripts.html' %}
+
+<body class="gray-bg">
+
+    <div class="middle-box text-center loginscreen animated fadeInDown">
+        <div>
+            <h4>Welcome to mis.digital reporting panel</h4>
+{#            <p>Please provide your credentials to look into dashboards</p>#}
+{#            <p>Login in. To see it in action.</p>#}
+
+            {% if message is not None %}
+                <div class="alert alert-danger">
+                    <strong>Sorry!</strong> {{ message }}
+                </div>
+            {% endif %}
+
+            <form class="form-horizontal" method="post" enctype="multipart/form-data" action="/login">
+                {% csrf_token %}
+                <div class="form-group">
+                    <input type="text" name="userid" class="form-control" placeholder="Username" required="">
+                </div>
+                <div class="form-group">
+                    <input type="password" name="password" class="form-control" placeholder="Password" required="">
+                </div>
+                <button type="submit" class="btn btn-primary block full-width m-b">Login</button>
+
+                <a href="#"><small>Forgot password?</small></a>
+                <p class="text-muted text-center"><small>Do not have an account?</small></p>
+                <a class="btn btn-sm btn-white btn-block" href="#">Create an account</a>
+            </form>
+
+
+            <p class="m-t"> <small>Powered By MIS. All rights reserved &copy; 2018</small> </p>
+        </div>
+    </div>
+
+    <script src="{% static "assets/js/jquery-3.1.1.min.js" %}"></script>
+    <script src="{% static "assets/js/bootstrap.js" %}"></script>
+</body>
+
+
+</html>

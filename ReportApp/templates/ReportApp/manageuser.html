@@ -1,0 +1,276 @@
+{% extends "./public/CommonBaseLayout.html" %}
+{% load static %}
+{% block main_content %}
+
+
+<script src="{% static "assets/js/plugins/footable/footable.all.min.js" %}"></script>
+<link href="{% static "assets/css/plugins/footable/footable.core.css" %}" rel="stylesheet">
+<style type="text/css">
+
+</style>
+
+<div class="row wrapper border-bottom white-bg page-heading">
+    <div class="col-sm-4">
+        <h2>Manage Users </h2>
+        <ol class="breadcrumb">
+{#                    <li>#}
+{#                        <a href="index.html">This is</a>#}
+{#                    </li>#}
+{#            <li class="active">#}
+{#                <strong>HP Dashboard</strong>#}
+{#            </li>#}
+        </ol>
+    </div>
+    <div class="col-sm-8">
+{#        <div class="title-action" style="float: right">#}
+{#            <a href="https://app.powerbi.com/view?r=eyJrIjoiMjM4NTBmYzAtYTZmYy00ZWFiLWI5YmUtYWUzNjJhZmRmYWU1IiwidCI6IjY1M2JkM2UxLTM2ZmYtNDM5OS1iMGFhLWY3ZTYzYTAyOTU5NyIsImMiOjEwfQ%3D%3D" target="_blank" class="btn btn-info">Full Screen</a>#}
+{#        </div>#}
+{#        <div class="title-action" style="float: right; margin-right: 10px;">#}
+{#            <a href="" class="btn btn-primary">Next</a>#}
+{#        </div>#}
+    </div>
+</div>
+
+
+<br>
+<div class="wrapper wrapper-content animated fadeInRight">
+    <div class="row">
+        <div class="col-lg-12">
+            {% if message|length > 0 %}
+                <div class="alert alert-info">
+                    {{ message }}
+                </div>
+            {% endif %}
+            <button type="button" class="btn btn-success pull-right" data-toggle="modal" data-target="#createUserModal">Create User</button>
+            <div class="ibox float-e-margins">
+                <div class="ibox-title">
+                    <h5>Manage Users</h5>
+
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                        <a class="dropdown-toggle" data-toggle="dropdown" href="#">
+                            <i class="fa fa-wrench"></i>
+                        </a>
+                        <ul class="dropdown-menu dropdown-user">
+                            <li><a href="#">Config 1</a>
+                            </li>
+                            <li><a href="#">Config 2</a>
+                            </li>
+                        </ul>
+                        <a class="close-link">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+                    <input type="text" class="form-control input-sm m-b-xs" id="filter" placeholder="Search in table">
+                    <table class="footable table table-stripped" data-page-size="8" data-filter=#filter  id="userTable">
+                        <thead>
+                            <tr>
+                                <th>UserId</th>
+                                <th>Password</th>
+                                <th>Email</th>
+                                <th>IsActive</th>
+                                <th colspan="2">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        {% for item in userList %}
+                            <tr class="gradeC">
+                                <td>{{ item.UserId }}</td>
+                                <td>{{ item.Password }}</td>
+                                <td>{{ item.Email }}</td>
+                                <td>
+                                    {% if item.IsActive is 1 %}
+                                        <span class="label label-primary">Active</span>
+                                    {% elif item.IsActive is 0 %}
+                                        <span class="label label-danger">Disable</span>
+                                    {% endif %}
+                                </td>
+                                <td style="display: none">{{ item.IsActive }}</td>
+
+                                <td>
+                                    <button class="btn btn-warning" data-toggle="modal" data-target="#editUserModal">Edit</button>
+                                </td>
+                                <td>
+                                    <form class="form-horizontal" method="post" enctype="multipart/form-data" action="/manageuser">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="actionType" value="DeleteUser">
+                                        <input type="hidden" name="UserId" value="{{ item.UserId }}">
+                                        <button class="btn btn-danger">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% endfor %}
+
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="5">
+                                <ul class="pagination pull-right"></ul>
+                            </td>
+                        </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Create User Modal -->
+<div class="modal inmodal" id="createUserModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">Close</span></button>
+                <i class="fa fa-laptop modal-icon"></i>
+                <h4 class="modal-title">Create User</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal" method="post" enctype="multipart/form-data" action="/manageuser">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <label class="control-label" for="userid">UserId:</label>
+                        <input type="text" name="userid" class="form-control" data-error="Please enter userid." required/>
+                        <div class="help-block with-errors"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label" for="userid">Username:</label>
+                        <input type="text" name="username" class="form-control" data-error="Please enter username." required/>
+                        <div class="help-block with-errors"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label" for="password">Password:</label>
+                        <input type="text" name="password" class="form-control" data-error="Please enter password." required/>
+                        <div class="help-block with-errors"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label" for="email">Email:</label>
+                        <input type="email" name="email" class="form-control" data-error="Please enter Email." required/>
+                        <div class="help-block with-errors"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="control-label" for="status">Status:</label>
+                        <select class="form-control" name="status">
+                            <option value="1" selected>Enable</option>
+                            <option value="1">Disable</option>
+                        </select>
+                        <div class="help-block with-errors"></div>
+                    </div>
+
+                    <input type="hidden" name="actionType" value="AddUser">
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Add</button>
+                        <button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Edit User Modal -->
+<div class="modal inmodal" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog">
+        <div class="modal-content animated bounceInRight">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span
+                        class="sr-only">Close</span></button>
+                <i class="fa fa-laptop modal-icon"></i>
+                <h4 class="modal-title">Edit User</h4>
+            </div>
+
+            <div class="modal-body">
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<link href="{% static "assets/css/plugins/datapicker/datepicker3.css" %}" rel="stylesheet">
+<!-- Data picker -->
+<script src="{% static "assets/js/plugins/datapicker/bootstrap-datepicker.js" %}"></script>
+<!-- Date range use moment.js same as full calendar plugin -->
+<script src="{% static "assets/js/plugins/fullcalendar/moment.min.js" %}"></script>
+<!-- Date range picker -->
+<script src="{% static "assets/js/plugins/daterangepicker/daterangepicker.js" %}"></script>
+
+
+<script>
+$(document).ready(function()
+{
+    $('.footable').footable();
+    $(".btn[data-target='#editUserModal']").click(function()
+    {
+        var columnHeadings = $("#userTable thead th").map(function()
+        {
+            return $(this).text();
+        }).get();
+        columnHeadings.pop();
+
+        var columnValues = $(this).parent().siblings().map(function()
+        {
+             return $(this).text();
+        }).get();
+
+        var modalBody = $('<div id="modalContent"></div>');
+        var modalForm = $('<form role="form" name="modalForm" action="/manageuser" method="post"></form>');
+        $.each(columnHeadings, function(i, columnHeader)
+        {
+            console.log(i);
+            if(i == 0)  //this is the userd. Dont let user modify it
+            {
+                var formGroup = $('<div class="form-group"></div>');
+                formGroup.append('<input type="hidden" name="UserId" value="'+columnValues[i]+'"/>');
+                formGroup.append('<label for="'+columnHeader+'">UserId: '+columnValues[i]+'</label>');
+                modalForm.append(formGroup);
+            }
+            else if(i == 1 || i==2)  //this is the password and email columns. So let user modify
+            {
+                var formGroup = $('<div class="form-group"></div>');
+                formGroup.append('<label for="'+columnHeader+'">'+columnHeader+'</label>');
+                formGroup.append('<input class="form-control" name="'+columnHeader+'" id="'+columnHeader+'" value="'+columnValues[i]+'" required/>');
+                modalForm.append(formGroup);
+            }
+            else if(i == 3)     //This is the IsActive status = 0 or 1. Its in a hidden <td></td> attribute
+            {
+                var formGroup = $('<div class="form-group"></div>');
+                formGroup.append('<label for="'+columnHeader+'">'+columnHeader+'</label>');
+                formGroup.append('<select class="form-control" name="status">' +
+                                        '<option value="1"'+ (columnValues[4] == 1?'selected' : '') +'>Enable</option>' +
+                                        '<option value="0"'+ (columnValues[4] == 0?'selected' : '') +'>Disable</option></select>');
+                modalForm.append(formGroup);
+            }
+
+        });
+        var inputElem = document.createElement('input');
+        inputElem.type = 'hidden';
+        inputElem.name = 'csrfmiddlewaretoken';
+        inputElem.value = '{{ csrf_token }}';
+        modalForm.append(inputElem);
+        modalForm.append('<input type="hidden" name="actionType" value="EditUser" >');
+        modalForm.append('<div class="modal-footer"><button type="submit" class="btn btn-primary">Save Changes</button><button type="button" class="btn btn-white" data-dismiss="modal">Cancel</button></div>');
+        modalBody.append(modalForm);
+        $('.modal-body').html(modalBody);
+    });
+
+});
+
+
+</script>
+
+{% endblock %}
